@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Infinity AI Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #9333ea 0%, #3b82f6 100%);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0a0a1a;
+            color: white;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes bounceIn {
+            0% { transform: translate(-50%, -20px); opacity: 0; }
+            70% { transform: translate(-50%, 5px); }
+            100% { transform: translate(-50%, 0); opacity: 1; }
+        }
+
+        .tab-content {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 0px;
+        }
+
+        #splash {
+            z-index: 9999;
+            transition: opacity 0.8s ease-in-out;
+        }
+
+        .toast {
+            animation: bounceIn 0.3s ease-out forwards;
+        }
+
+        .bottom-nav-icon.active {
+            color: #c084fc;
+            filter: drop-shadow(0 0 8px rgba(192, 132, 252, 0.8));
+            transform: scale(1.1);
+        }
+
+        /* Mobile safe area padding for the bottom of the chat */
+        #chat-messages {
+            padding-bottom: 100px;
+        }
+    </style>
+</head>
+<body class="flex flex-col">
+
+    <!-- Splash Screen -->
+    <div id="splash" class="fixed inset-0 flex flex-col items-center justify-center bg-[#0d0d2b]">
+        <div class="relative flex flex-col items-center">
+            <div class="absolute w-32 h-32 border-2 border-purple-500/30 rounded-full animate-ping"></div>
+            <div class="w-24 h-24 bg-gradient-to-tr from-purple-600 to-blue-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-purple-500/50 transform rotate-12 transition-transform">
+                <span class="text-white text-5xl font-black -rotate-12 italic">∞</span>
+            </div>
+            <h1 class="mt-8 text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-300 tracking-tighter">
+                INFINITY AI PRO
+            </h1>
+            <p class="mt-2 text-blue-300/60 font-medium tracking-widest text-xs uppercase">Future is here</p>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div class="flex-1 flex flex-col max-w-2xl mx-auto w-full relative overflow-hidden">
+        
+        <!-- Tab: Chat (Fixed Display Issues) -->
+        <section id="chat-tab" class="tab-content active">
+            <div class="p-4 flex justify-between items-center border-b border-white/5 backdrop-blur-md shrink-0">
+                <div>
+                    <h2 class="text-xl font-bold">AI Chat</h2>
+                    <p class="text-xs text-green-400 flex items-center gap-1">
+                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Online
+                    </p>
+                </div>
+                <button onclick="clearChat()" class="p-2 text-gray-400 hover:text-red-400"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+            
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+                <!-- Messages load here -->
+            </div>
+
+            <div class="p-4 bg-black/20 backdrop-blur-xl border-t border-white/5 shrink-0">
+                <form onsubmit="handleChatSubmit(event)" class="relative mb-20">
+                    <input id="chat-input" type="text" placeholder="Type your message..." class="w-full bg-white/5 border border-white/10 rounded-full py-4 pl-6 pr-14 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50">
+                    <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 p-3 rounded-full bg-purple-600 text-white hover:bg-purple-500 transition-all">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Tab: Create -->
+        <section id="create-tab" class="tab-content overflow-y-auto">
+            <div class="p-4">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold">Image Studio</h2>
+                    <button onclick="toggleImageSettings()" class="p-2 bg-white/5 rounded-xl text-purple-400"><i class="fa-solid fa-sliders"></i></button>
+                </div>
+                <div class="space-y-4">
+                    <div class="relative">
+                        <textarea id="image-prompt" placeholder="Describe what you want to see..." class="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white resize-none focus:outline-none focus:ring-2 focus:ring-purple-500/50"></textarea>
+                    </div>
+                    <button id="gen-btn" onclick="handleImageGeneration()" class="w-full py-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-purple-600/20 active:scale-[0.98]">
+                        <i class="fa-solid fa-bolt"></i> Ignite Creation
+                    </button>
+                    <div id="progress-container" class="hidden w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+                        <div id="progress-bar" class="h-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                    <div id="image-gallery" class="grid grid-cols-1 gap-4 mt-6 pb-24"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab: History -->
+        <section id="history-tab" class="tab-content overflow-y-auto">
+            <div class="p-4">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold">Collection</h2>
+                    <button onclick="clearHistory()" class="text-xs text-red-400 bg-red-400/10 px-3 py-1.5 rounded-full">Clear All</button>
+                </div>
+                <div id="history-content" class="space-y-8 pb-24"></div>
+            </div>
+        </section>
+
+        <!-- Tab: Settings -->
+        <section id="settings-tab" class="tab-content overflow-y-auto">
+            <div class="p-4">
+                <h2 class="text-xl font-bold mb-6">Settings</h2>
+                <div class="space-y-4">
+                    <div class="glass rounded-3xl p-4 space-y-6">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="p-2 bg-yellow-500/20 rounded-xl text-yellow-400"><i class="fa-solid fa-moon"></i></div>
+                                <div>
+                                    <p class="text-sm font-medium">Dark Mode</p>
+                                    <p class="text-[10px] text-gray-500">Save battery life</p>
+                                </div>
+                            </div>
+                            <div class="w-12 h-6 bg-purple-600 rounded-full relative"><div class="absolute top-1 right-1 w-4 h-4 bg-white rounded-full"></div></div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="p-2 bg-blue-500/20 rounded-xl text-blue-400"><i class="fa-solid fa-gauge-high"></i></div>
+                                <div>
+                                    <p class="text-sm font-medium">Performance</p>
+                                    <p class="text-[10px] text-gray-500">Fast vs Quality</p>
+                                </div>
+                            </div>
+                            <select class="bg-black/40 text-xs text-white p-1 rounded">
+                                <option>Fast Mode</option>
+                                <option>Quality Mode</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button onclick="localStorage.clear(); location.reload();" class="w-full p-4 glass rounded-3xl text-red-400 font-bold flex items-center justify-between">
+                        <span>Reset Application</span>
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 h-20 glass border-t border-white/5 flex justify-around items-center px-4 z-40 max-w-2xl mx-auto">
+        <button onclick="switchTab('chat')" class="bottom-nav-icon flex flex-col items-center text-purple-400 active"><i class="fa-solid fa-message text-xl"></i><span class="text-[10px] mt-1 font-bold">Chat</span></button>
+        <button onclick="switchTab('create')" class="bottom-nav-icon flex flex-col items-center text-gray-500"><i class="fa-solid fa-wand-sparkles text-xl"></i><span class="text-[10px] mt-1 font-bold">Create</span></button>
+        <button onclick="switchTab('history')" class="bottom-nav-icon flex flex-col items-center text-gray-500"><i class="fa-solid fa-clock-rotate-left text-xl"></i><span class="text-[10px] mt-1 font-bold">History</span></button>
+        <button onclick="switchTab('settings')" class="bottom-nav-icon flex flex-col items-center text-gray-500"><i class="fa-solid fa-gear text-xl"></i><span class="text-[10px] mt-1 font-bold">Settings</span></button>
+    </nav>
+
+    <!-- Image Settings Panel -->
+    <div id="image-settings-panel" class="fixed inset-0 z-50 flex items-end justify-center p-4 bg-black/60 hidden">
+        <div class="bg-[#1a1a2e] w-full max-w-md rounded-t-[32px] p-6 border border-white/10">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">Engine Settings</h3>
+                <button onclick="toggleImageSettings()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-6">
+                <div>
+                    <label class="text-xs text-gray-500 block mb-2">Art Style</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button class="bg-purple-600 p-2 rounded-lg text-[10px] font-bold">Realistic</button>
+                        <button class="bg-white/5 p-2 rounded-lg text-[10px] font-bold">Anime</button>
+                        <button class="bg-white/5 p-2 rounded-lg text-[10px] font-bold">3D Render</button>
+                    </div>
+                </div>
+                <button onclick="toggleImageSettings()" class="w-full py-4 bg-white/10 rounded-2xl font-bold">Apply Configuration</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed top-12 left-1/2 -translate-x-1/2 z-[100] hidden">
+        <div class="bg-purple-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 font-bold text-sm">
+            <i class="fa-solid fa-circle-check"></i>
+            <span id="toast-text">Success</span>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = ""; // Key is used from environment
+        const MODEL_CHAT = "gemini-2.5-flash-preview-09-2025";
+        const MODEL_IMG = "imagen-4.0-generate-001";
+
+        let chatMessages = JSON.parse(localStorage.getItem('infinity_chat') || '[]');
+        let historyImages = JSON.parse(localStorage.getItem('infinity_images') || '[]');
+
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById('splash').style.opacity = '0';
+                setTimeout(() => document.getElementById('splash').style.display = 'none', 800);
+            }, 3000);
+            renderChat();
+            renderHistory();
+        };
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.bottom-nav-icon').forEach(el => {
+                el.classList.remove('text-purple-400', 'active');
+                el.classList.add('text-gray-500');
+            });
+
+            document.getElementById(tabId + '-tab').classList.add('active');
+            const btn = event.currentTarget;
+            btn.classList.add('text-purple-400', 'active');
+            btn.classList.remove('text-gray-500');
+
+            if(tabId === 'history') renderHistory();
+        }
+
+        function showToast(text) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-text').innerText = text;
+            toast.classList.remove('hidden');
+            toast.classList.add('toast');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        // --- Chat Logic ---
+        async function callGemini(prompt) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_CHAT}:generateContent?key=${API_KEY}`;
+            const makeRequest = async (retries = 0) => {
+                try {
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            contents: [{parts: [{text: prompt}]}],
+                            systemInstruction: { parts: [{ text: "Aap ek Infinity AI Pro assistant hain. Professional aur helpful bane rahein." }] }
+                        })
+                    });
+                    if (!res.ok && retries < 5) {
+                        await new Promise(r => setTimeout(r, Math.pow(2, retries) * 1000));
+                        return makeRequest(retries + 1);
+                    }
+                    const data = await res.json();
+                    return data.candidates?.[0]?.content?.parts?.[0]?.text || "Mafi chahta hoon, main response nahi de saka.";
+                } catch(e) { return "Connection error. Please check internet."; }
+            };
+            return makeRequest();
+        }
+
+        async function handleChatSubmit(e) {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if(!text) return;
+
+            input.value = '';
+            chatMessages.push({ role: 'user', content: text });
+            renderChat();
+
+            const typingMsg = { role: 'ai', content: 'Processing...', typing: true };
+            chatMessages.push(typingMsg);
+            renderChat();
+
+            const aiResponse = await callGemini(text);
+            chatMessages.pop();
+            chatMessages.push({ role: 'ai', content: aiResponse });
+            
+            localStorage.setItem('infinity_chat', JSON.stringify(chatMessages));
+            renderChat();
+        }
+
+        function renderChat() {
+            const container = document.getElementById('chat-messages');
+            if(chatMessages.length === 0) {
+                container.innerHTML = `<div class="h-full flex flex-col items-center justify-center opacity-30 mt-20"><i class="fa-solid fa-comments text-5xl mb-4"></i><p>Start a new chat</p></div>`;
+                return;
+            }
+            container.innerHTML = chatMessages.map(msg => `
+                <div class="flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}">
+                    <div class="max-w-[85%] p-4 rounded-2xl relative group ${
+                        msg.role === 'user' 
+                        ? 'bg-gradient-to-tr from-purple-600 to-blue-600 text-white rounded-tr-none shadow-lg shadow-purple-900/20' 
+                        : 'glass text-gray-100 rounded-tl-none border border-white/10'
+                    }">
+                        <p class="text-sm leading-relaxed">${msg.content}</p>
+                        ${msg.role === 'ai' && !msg.typing ? `<button onclick="copyText('${msg.content.replace(/'/g, "\\'")}')" class="absolute bottom-1 right-1 opacity-0 group-hover:opacity-100 p-1"><i class="fa-solid fa-copy text-[10px] text-gray-400"></i></button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+            container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+        }
+
+        function clearChat() {
+            chatMessages = [];
+            localStorage.removeItem('infinity_chat');
+            renderChat();
+            showToast("Chat Cleared");
+        }
+
+        function copyText(text) {
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            showToast("Copied to Clipboard");
+        }
+
+        // --- Image Generation Logic ---
+        async function handleImageGeneration() {
+            const prompt = document.getElementById('image-prompt').value.trim();
+            if(!prompt) return;
+
+            const btn = document.getElementById('gen-btn');
+            const progress = document.getElementById('progress-container');
+            const bar = document.getElementById('progress-bar');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Visualizing...';
+            progress.classList.remove('hidden');
+            
+            let p = 0;
+            const interval = setInterval(() => { p += 5; if(p < 90) bar.style.width = p + '%'; }, 500);
+
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_IMG}:predict?key=${API_KEY}`;
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        instances: { prompt: prompt },
+                        parameters: { sampleCount: 1 }
+                    })
+                });
+                const data = await res.json();
+                const imgData = `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`;
+                
+                const gallery = document.getElementById('image-gallery');
+                const imgCard = document.createElement('div');
+                imgCard.className = "relative group rounded-3xl overflow-hidden glass border border-white/10 shadow-2xl animate-fade-in";
+                imgCard.innerHTML = `
+                    <img src="${imgData}" class="w-full h-auto">
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                     
